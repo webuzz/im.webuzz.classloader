@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Zhou Renjian / zhourenjian@gmail.com - initial API and implementation
+ *	 Zhou Renjian / zhourenjian@gmail.com - initial API and implementation
  *******************************************************************************/
 
 package im.webuzz.classloader;
@@ -15,7 +15,6 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -93,14 +92,14 @@ public class SimpleClassLoader extends ClassLoader {
 		}
 		if (contains) {
 			Exception ex = null;
-        	synchronized (mutex) {
-        		clazz = loadedClasses.get(clazzName);
-        		if (clazz != null) {
-        			return clazz;
-        		}
-	            byte[] bytes = null;
+			synchronized (mutex) {
+				clazz = loadedClasses.get(clazzName);
+				if (clazz != null) {
+					return clazz;
+				}
+				byte[] bytes = null;
 				// The following lines are IO sensitive
-	            try {
+				try {
 					bytes = loadClassData(clazzName);
 				} catch (IOException e) {
 					ex = e;
@@ -108,7 +107,7 @@ public class SimpleClassLoader extends ClassLoader {
 				if (bytes != null) {
 					clazz = defineClass(clazzName, bytes, 0, bytes.length);
 					loadedClasses.put(clazzName, clazz);
-	        		return clazz;
+					return clazz;
 				}
 			}
 			// continue to load class by super class loader
@@ -149,39 +148,39 @@ public class SimpleClassLoader extends ClassLoader {
 	/*
 	 * Read class bytes from file system.
 	 */
-    private byte[] loadClassData(String className) throws IOException {
-    	String cp = classpath;
-    	if (cp == null) {
-    		cp = "./";
-    	}
-    	int length = cp.length();
+	private byte[] loadClassData(String className) throws IOException {
+		String cp = classpath;
+		if (cp == null) {
+			cp = "./";
+		}
+		int length = cp.length();
 		if (length > 0) {
 			char c = cp.charAt(length - 1);
 			if (c != '/' && c != '\\') {
-	    		cp = cp + "/";
+				cp = cp + "/";
 			}
-    	}
-        File f = new File(cp + className.replace('.', '/') + ".class");
-        int size = (int) f.length();
-        byte buff[] = new byte[size];
-        DataInputStream dis = null;
-        try {
+		}
+		File f = new File(cp + className.replace('.', '/') + ".class");
+		int size = (int) f.length();
+		byte buff[] = new byte[size];
+		DataInputStream dis = null;
+		try {
 			dis = new DataInputStream(new FileInputStream(f));
 			dis.readFully(buff);
 		} finally {
-	        if (dis != null) {
-	        	dis.close();
-	        }
+			if (dis != null) {
+				dis.close();
+			}
 		}
-        return buff;
-    }
+		return buff;
+	}
 
-    /**
-     * Load given class.
-     * 
-     * @param clazzName
-     * @return 
-     */
+	/**
+	 * Load given class.
+	 * 
+	 * @param clazzName
+	 * @return 
+	 */
 	public static Class<?> loadSimpleClass(String clazzName) {
 		try {
 			ClassLoader classLoader = hasClassReloaded ? allLoaders.get(clazzName) : null;
@@ -196,14 +195,14 @@ public class SimpleClassLoader extends ClassLoader {
 		return null;
 	}
 
-    /**
-     * Load given class and create instance by default constructor.
-     * 
-     * This method should not be used for those classes without default constructor.
-     * 
-     * @param clazzName
-     * @return 
-     */
+	/**
+	 * Load given class and create instance by default constructor.
+	 * 
+	 * This method should not be used for those classes without default constructor.
+	 * 
+	 * @param clazzName
+	 * @return 
+	 */
 	public static Object loadSimpleInstance(String clazzName) {
 		try {
 			Class<?> runnableClass = null;
@@ -214,7 +213,7 @@ public class SimpleClassLoader extends ClassLoader {
 				runnableClass = Class.forName(clazzName);
 			}
 			if (runnableClass != null) {
-				return runnableClass.newInstance();
+				return runnableClass.getDeclaredConstructor().newInstance();
 			}
 		} catch (Exception e) {
 			//e.printStackTrace();
@@ -234,30 +233,30 @@ public class SimpleClassLoader extends ClassLoader {
 		reloadSimpleClasses(new String[] { clazzName }, path, null);
 	}
 
-    static boolean isSubclassOf(Class<?> type, String superClass) {
-    	if (type == null || superClass == null || superClass.length() == 0) {
-    		return false;
-    	}
-    	if (type.getName().equals(superClass)) {
-    		return true;
-    	}
-    	do {
-    		type = type.getSuperclass();
-        	if (type.getName().equals(superClass)) {
-    			return true;
-    		}
-    		if (type == Object.class) {
-    			return false;
-    		}
-    	} while (type != null);
-    	return false;
-    }
+	static boolean isSubclassOf(Class<?> type, String superClass) {
+		if (type == null || superClass == null || superClass.length() == 0) {
+			return false;
+		}
+		if (type.getName().equals(superClass)) {
+			return true;
+		}
+		do {
+			type = type.getSuperclass();
+			if (type.getName().equals(superClass)) {
+				return true;
+			}
+			if (type == Object.class) {
+				return false;
+			}
+		} while (type != null);
+		return false;
+	}
 
-    private static Class<?> ssClass;
-    private static Method gSFMethod;
-    private static Method sCLMethod;
-    
-    static void preloadClass(ClassLoader loader, String name) {
+	private static Class<?> ssClass;
+	private static Method gSFMethod;
+	private static Method sCLMethod;
+	
+	static void preloadClass(ClassLoader loader, String name) {
 		try {
 			Class<?> clazz = loader.loadClass(name);
 			String baseClassName = "net.sf.j2s.ajax.SimpleSerializable";
@@ -277,22 +276,12 @@ public class SimpleClassLoader extends ClassLoader {
 					gSFMethod.invoke(ssClass, name, clazz);
 				}
 			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    }
-    
-    static void updateClassLoaders(Map<String, ClassLoader> loaders) {
+	}
+	
+	static void updateClassLoaders(Map<String, ClassLoader> loaders) {
 		String baseClassName = "net.sf.j2s.ajax.SimpleSerializable";
 		try {
 			if (sCLMethod == null) {
@@ -307,21 +296,11 @@ public class SimpleClassLoader extends ClassLoader {
 			if (sCLMethod != null) {
 				sCLMethod.invoke(ssClass, loaders);
 			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    }
-    
+	}
+	
 	/**
 	 * Try to reload given classes.
 	 * 
@@ -343,9 +322,9 @@ public class SimpleClassLoader extends ClassLoader {
 			}
 			checkedLoaders.add(loader);
 			if ((tag == null // for tag is null, use any existed loader
-							|| (loader.tag != null && loader.tag.equals(tag)))
+						|| (loader.tag != null && loader.tag.equals(tag)))
 					&& ((loader.classpath == null && path == null)
-							|| (loader.classpath != null && loader.classpath.equals(path)))) {
+						|| (loader.classpath != null && loader.classpath.equals(path)))) {
 				boolean loaded = false;
 				for (int i = 0; i < clazzNames.length; i++) {
 					String name = clazzNames[i];
@@ -410,7 +389,7 @@ public class SimpleClassLoader extends ClassLoader {
 		}
 		hasClassReloaded = true;
 	}
-    
+	
 	public static void releaseUnusedClassLoaders() {
 		for (String key : allLoaders.keySet()) {
 			if (key.startsWith(".")) {
